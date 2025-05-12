@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cat Catcher 2000</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+  </head>
+  <body>
+    <script>
+      var config = {
+        type: Phaser.CANVAS,
+        width: 800,
+        height: 600,
+        physics: {
+          default: 'arcade',
+          arcade: {
+            debug: false
+          }
+        },
+        scene: {
+          preload: preload,
+          create: create,
+          update: update
+        }
+      };
+
+      var game = new Phaser.Game(config);
+
+      let cat, catcher, cursors, txtScore;
+      let score = 0;
+
+      function preload() {
+        console.log("Preloading...");
+        this.load.image('cat', 'img/cat.png');
+        this.load.image('catcher', 'img/catcher.png');
+        this.load.image('bg', 'img/bg.png');
+      }
+
+      function create() {
+        console.log("Creating the game...");
+
+        this.add.image(0, 0, 'bg').setOrigin(0, 0);
+
+        catcher = this.physics.add.sprite(400, 300, 'catcher');
+        catcher.setCollideWorldBounds(true);
+        catcher.setOrigin(0.5, 0.5);
+
+        cat = this.physics.add.sprite(
+          Phaser.Math.Between(50, 750),
+          Phaser.Math.Between(50, 550),
+          'cat'
+        );
+
+        cursors = this.input.keyboard.createCursorKeys();
+
+        txtScore = this.add.text(10, 10, "Score: 0", {
+          font: "20px Arial",
+          fill: "#ffffff"
+        });
+      }
+
+      function update() {
+        // Movement logic
+        if (cursors.left.isDown) {
+          catcher.setVelocityX(-200);
+          catcher.setFlipX(true);
+        } else if (cursors.right.isDown) {
+          catcher.setVelocityX(200);
+          catcher.setFlipX(false);
+        } else {
+          catcher.setVelocityX(0);
+        }
+
+        if (cursors.up.isDown) {
+          catcher.setVelocityY(-200);
+        } else if (cursors.down.isDown) {
+          catcher.setVelocityY(200);
+        } else {
+          catcher.setVelocityY(0);
+        }
+
+        // Collision check
+        this.physics.world.overlap(catcher, cat, catchCat, null, this);
+      }
+
+      function catchCat(catcherObj, catObj) {
+        // Move cat to a new random location
+        catObj.x = Phaser.Math.Between(50, 750);
+        catObj.y = Phaser.Math.Between(50, 550);
+
+        // Increase and display score
+        score++;
+        txtScore.setText("Score: " + score);
+      }
+    </script>
+  </body>
+</html>
