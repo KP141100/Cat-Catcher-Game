@@ -26,8 +26,11 @@
 
       var game = new Phaser.Game(config);
 
-      let cat, catcher, cursors, txtScore;
+      let cat, catcher, cursors, txtScore, timerText, countdownText, restartButton;
       let score = 0;
+      let timeLeft = 60;
+      let gameStarted = false;
+      let countdownValue = 3;
 
       function preload() {
         console.log("Preloading...");
@@ -38,6 +41,11 @@
 
       function create() {
         console.log("Creating the game...");
+
+        score = 0;
+        timeLeft = 60;
+        countdownValue = 3;
+        gameStarted = false;
 
         this.add.image(0, 0, 'bg').setOrigin(0, 0);
 
@@ -51,15 +59,54 @@
           'cat'
         );
 
+        timerText = this.add.text(600, 10, "Time: 60", {
+          font: "20px Arial",
+          fill: "#ffffff"
+        });
+
         cursors = this.input.keyboard.createCursorKeys();
 
         txtScore = this.add.text(10, 10, "Score: 0", {
           font: "20px Arial",
           fill: "#ffffff"
         });
-      }
+
+        countdownText = this.add.text(400, 300, countdownValue, {
+          font: "80px Arial",
+          fill: "#ffff00"
+        }).setOrigin(0.5);
+
+        this.time.addEvent({
+          delay: 1000,
+          repeat: 3,
+          callback: () => {
+            if (countdownValue > 1) {
+              countdownValue--;
+              countdownText.setText(countdownValue);
+            } else {
+              if (countdownValue === 1) {
+               countdownText.setText("Go!");
+               countdownValue--;
+              } else {
+              countdownText.destroy();
+              gameStarted = true;
+              
+
+              this.time.addEvent({
+                delay: 1000,
+                callback: updateTimer,
+                callbackScope: this,
+                loop: true
+              });
+            }
+          }
+        }
+      });
+    }
 
       function update() {
+        if (!gameStarted) return;
+
         // Movement logic
         if (cursors.left.isDown) {
           catcher.setVelocityX(-200);
@@ -91,6 +138,32 @@
         // Increase and display score
         score++;
         txtScore.setText("Score: " + score);
+      }
+      
+      function updateTimer(){
+        timeLeft--;
+
+        if (timeLeft <= 0) {
+          timerText.setText("Time: 0");
+          this.physics.pause();
+          this.add.text(300, 250, 'Game Over', {
+            font: "40px Arial",
+            fill: "#ff0000"
+          });
+
+          restartButton = this.add.text(330, 300, 'Restart', {
+            font: "30px Arial",
+            fill: "#00ff00",
+            backgroundColor: "#000000",
+            padding: { x: 10, y: 5}
+          })
+          .setInteractive()
+          .on('pointerdown', () => {
+            this.scene.restart();
+          });
+        } else {
+          timerText.setText("Time: " + timeLeft);
+        }
       }
     </script>
   </body>
